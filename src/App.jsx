@@ -518,6 +518,11 @@ export default function App() {
           </button>
         </div>
       )}
+
+      <div style={styles.footer} className="app-footer">
+        По вопросам работы сайта пишите в Telegram: <a href="https://t.me/daniyar_orzbv" target="_blank" rel="noopener noreferrer" style={styles.tgLink}>@daniyar_orzbv</a>
+      </div>
+
     </div>
   );
 }
@@ -953,6 +958,20 @@ const styles = {
     color: "#9ca3af",
     fontWeight: 500,
   },
+  footer: {
+    marginTop: "auto",
+    padding: "24px 16px",
+    textAlign: "center",
+    fontSize: 14,
+    color: "#6b7280",
+    width: "100%",
+    boxSizing: "border-box",
+  },
+  tgLink: {
+    color: "#c9a84c",
+    textDecoration: "none",
+    fontWeight: 500,
+  },
 };
 
 const css = `
@@ -960,6 +979,7 @@ const css = `
   .card-btn:hover { border-color: #c9a84c !important; transform: translateY(-4px); }
   .option-btn:hover:not([disabled]) { border-color: #4b4737 !important; background: #1c1c23 !important; }
   button { font-family: 'Inter', sans-serif; }
+  .tg-link:hover { text-decoration: underline !important; }
 
   @media (max-width: 600px) {
     .app-title { font-size: 32px !important; margin-bottom: 12px !important; }
