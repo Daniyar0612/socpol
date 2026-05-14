@@ -1,16 +1,26 @@
-# React + Vite
+# Sociology Exam Simulator 🎓
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Веб-приложение для подготовки к финальному экзамену по дисциплине «Социология и Политология». Проект представляет собой интерактивный симулятор тестирования с глобальной таблицей лидеров.
 
-Currently, two official plugins are available:
+🌐 **Сайт проекта:** [Играть / Пройти тест](https://Daniyar0612.github.io/socpol)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Особенности (Features)
 
-## React Compiler
+* **Глубокая рандомизация:** Каждый тест состоит из 40 случайных вопросов, выбранных из обширной базы (более 180 вопросов). Варианты ответов также перемешиваются при каждом прохождении.
+* **Глобальный рейтинг (Leaderboard):** Интеграция с облачной базой данных для сохранения результатов и вывода Топ-10 лучших студентов.
+* **Авторизация:** Безопасный и быстрый вход через аккаунт Google.
+* **Анализ результатов:** После завершения теста выводится подробная статистика (процент точности, количество верных и неверных ответов), а также предоставляется возможность детального разбора ошибок.
+* **Адаптивный дизайн:** Полная поддержка мобильных устройств и десктопов.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Стек технологий
 
-## Expanding the ESLint configuration
+* **Frontend:** React, Vite
+* **Backend / BaaS:** Firebase (Authentication, Cloud Firestore)
+* **Деплой:** GitHub Pages
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Автор
+
+**Daniyar Orazbaev** Связь в Telegram: [@daniyar_orzbv](https://www.google.com/search?q=https://t.me/daniyar_orzbv)
+
+```
