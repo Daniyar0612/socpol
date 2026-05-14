@@ -246,8 +246,7 @@ export default function App() {
       });
       setLeaderboard(data);
     } catch (error) {
-      console.error("Ошибка загрузки рейтинга:", error);
-      // Убрали страшный alert! Игроки его больше не увидят.
+      console.error(error);
     }
     setLoadingLB(false);
   };
@@ -328,26 +327,25 @@ export default function App() {
     <div style={styles.root}>
       <style>{css}</style>
 
-      {/* НОВАЯ ПЛОСКАЯ ШАПКА ПРОФИЛЯ */}
       {user && (
         <div style={styles.topNavbar}>
           <div style={styles.navLeft}>
             <img src={user.photoURL} alt="avatar" style={styles.navAvatar} />
-            <span style={styles.navName}>{user.displayName}</span>
+            <span style={styles.navName} className="nav-name">{user.displayName}</span>
           </div>
           <button onClick={handleLogout} style={styles.navLogoutBtn}>Выйти</button>
         </div>
       )}
 
       {mode === "menu" && (
-        <div style={styles.menu}>
+        <div style={styles.menu} className="menu-wrap">
           <div style={styles.badge}>SOCIOLOGY EXAM PREP</div>
-          <h1 style={styles.title}>Exam Simulator</h1>
+          <h1 style={styles.title} className="app-title">Exam Simulator</h1>
 
           {!user ? (
-            <div style={styles.authContainer}>
-              <p style={styles.sub}>Авторизуйся через Google, чтобы получить доступ к тестам и таблице лидеров.</p>
-              <button onClick={handleLogin} style={styles.bigLoginBtn}>
+            <div style={styles.authContainer} className="auth-wrap">
+              <p style={styles.sub} className="app-sub">Авторизуйся через Google, чтобы получить доступ к тестам и таблице лидеров.</p>
+              <button onClick={handleLogin} style={styles.bigLoginBtn} className="login-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" style={{marginRight: 10}}>
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -358,13 +356,13 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <div style={styles.cards}>
+            <div style={styles.cards} className="cards-wrap">
               <button style={{...styles.card, width: 220}} onClick={startQuiz} className="card-btn">
                 <span style={styles.cardNum}>40</span>
                 <span style={styles.cardLabel}>Начать тест</span>
                 <span style={styles.cardDesc}>Случайный набор вопросов</span>
               </button>
-              <button style={{...styles.card, width: 220, borderColor: "#22c55e"}} onClick={fetchLeaderboard} className="card-btn">
+              <button style={{...styles.card, width: 220, borderColor: "#22c55e"}} onClick={fetchLeaderboard} className="card-btn lb-btn">
                 <span style={{...styles.cardNum, color: "#22c55e"}}>🏆</span>
                 <span style={styles.cardLabel}>Рейтинг</span>
                 <span style={styles.cardDesc}>Топ результатов</span>
@@ -375,30 +373,30 @@ export default function App() {
       )}
 
       {mode === "leaderboard" && (
-        <div style={styles.lbWrap}>
-          <h2 style={styles.title}>Top Scores</h2>
+        <div style={styles.lbWrap} className="lb-wrap">
+          <h2 style={styles.title} className="app-title">Top Scores</h2>
           {loadingLB ? (
             <p style={{color: "#9ca3af"}}>Загрузка рейтинга...</p>
           ) : (
             <div style={styles.lbList}>
               {leaderboard.map((item, i) => (
-                <div key={i} style={styles.lbItem}>
-                  <div style={styles.lbRank}>{i + 1}</div>
-                  <div style={styles.lbName}>{item.name}</div>
-                  <div style={styles.lbScore}>{item.pct}% ({item.score}/{item.total})</div>
+                <div key={i} style={styles.lbItem} className="lb-item">
+                  <div style={styles.lbRank} className="lb-rank">{i + 1}</div>
+                  <div style={styles.lbName} className="lb-name">{item.name}</div>
+                  <div style={styles.lbScore} className="lb-score">{item.pct}% ({item.score}/{item.total})</div>
                 </div>
               ))}
               {leaderboard.length === 0 && <p style={{color: "#9ca3af"}}>Еще нет результатов. Будь первым!</p>}
             </div>
           )}
-          <button onClick={() => setMode("menu")} style={{ ...styles.btn, ...styles.btnPrimary, marginTop: 40 }}>
+          <button onClick={() => setMode("menu")} style={{ ...styles.btn, ...styles.btnPrimary, marginTop: 40 }} className="action-btn">
             ← В главное меню
           </button>
         </div>
       )}
 
       {mode === "quiz" && !showResult && q && (
-        <div style={styles.quizWrap}>
+        <div style={styles.quizWrap} className="quiz-wrap">
           <div style={styles.topBar}>
             <button onClick={() => setMode("menu")} style={styles.backBtn}>← В меню</button>
             <span style={styles.progress}>{current + 1} / {totalQ}</span>
@@ -409,7 +407,7 @@ export default function App() {
           </div>
 
           <div style={styles.qNum}>QUESTION {current + 1}</div>
-          <div style={styles.qText}>{q.q}</div>
+          <div style={styles.qText} className="q-text">{q.q}</div>
 
           <div style={styles.options}>
             {q.options.map((opt, idx) => {
@@ -427,8 +425,8 @@ export default function App() {
                   }}
                   className="option-btn"
                 >
-                  <span style={styles.optLabel}>{LABELS[idx]}</span>
-                  <span style={styles.optText}>{opt}</span>
+                  <span style={styles.optLabel} className="opt-label">{LABELS[idx]}</span>
+                  <span style={styles.optText} className="opt-text">{opt}</span>
                   {st === "correct" && <span style={styles.icon}>✓</span>}
                   {st === "wrong" && <span style={styles.icon}>✗</span>}
                 </button>
@@ -436,17 +434,18 @@ export default function App() {
             })}
           </div>
 
-          <div style={styles.actions}>
+          <div style={styles.actions} className="actions-wrap">
             {!confirmed ? (
               <button
                 onClick={handleConfirm}
                 disabled={selectedAns === null}
                 style={{ ...styles.btn, ...(selectedAns === null ? styles.btnDisabled : styles.btnPrimary) }}
+                className="action-btn"
               >
                 Подтвердить
               </button>
             ) : (
-              <button onClick={handleNext} style={{ ...styles.btn, ...styles.btnPrimary }}>
+              <button onClick={handleNext} style={{ ...styles.btn, ...styles.btnPrimary }} className="action-btn">
                 {current + 1 >= totalQ ? "Результаты →" : "Следующий вопрос →"}
               </button>
             )}
@@ -455,25 +454,25 @@ export default function App() {
       )}
 
       {mode === "quiz" && showResult && (
-        <div style={styles.resultWrap}>
+        <div style={styles.resultWrap} className="result-wrap">
           <div style={styles.scoreHeader}>СТАТИСТИКА</div>
           
-          <div style={styles.statsContainer}>
-            <div style={styles.statBox}>
-              <div style={{...styles.statNum, color: "#c9a84c"}}>{pct}%</div>
+          <div style={styles.statsContainer} className="stats-wrap">
+            <div style={styles.statBox} className="stat-box">
+              <div style={{...styles.statNum, color: "#c9a84c"}} className="stat-num">{pct}%</div>
               <div style={styles.statLabel}>Точность</div>
             </div>
-            <div style={styles.statBox}>
-              <div style={{...styles.statNum, color: "#22c55e"}}>{score}</div>
+            <div style={styles.statBox} className="stat-box">
+              <div style={{...styles.statNum, color: "#22c55e"}} className="stat-num">{score}</div>
               <div style={styles.statLabel}>Верно</div>
             </div>
-            <div style={styles.statBox}>
-              <div style={{...styles.statNum, color: "#ef4444"}}>{wrongScore}</div>
+            <div style={styles.statBox} className="stat-box">
+              <div style={{...styles.statNum, color: "#ef4444"}} className="stat-num">{wrongScore}</div>
               <div style={styles.statLabel}>Ошибки</div>
             </div>
           </div>
 
-          <div style={styles.scoreMsg}>
+          <div style={styles.scoreMsg} className="score-msg">
             {pct === 100 ? "🎉 Идеально! Твой результат отправлен в базу." : pct >= 80 ? "🔥 Хорошая работа! Твой результат сохранен." : "📚 Результат сохранен, но есть куда расти!"}
           </div>
 
@@ -497,7 +496,7 @@ export default function App() {
               const userIdx = rq.options.indexOf(userAnsStr);
 
               return (
-                <div key={rq.id} style={{ ...styles.reviewCard, ...(isCorrect ? styles.reviewCorrect : styles.reviewWrong) }}>
+                <div key={rq.id} style={{ ...styles.reviewCard, ...(isCorrect ? styles.reviewCorrect : styles.reviewWrong) }} className="review-card">
                   <div style={styles.reviewQ}>
                     <span style={styles.reviewIndex}>{index + 1}.</span> {rq.q}
                   </div>
@@ -514,7 +513,7 @@ export default function App() {
             })}
           </div>
 
-          <button onClick={() => setMode("menu")} style={{ ...styles.btn, ...styles.btnPrimary, marginTop: 40 }}>
+          <button onClick={() => setMode("menu")} style={{ ...styles.btn, ...styles.btnPrimary, marginTop: 40 }} className="action-btn">
             ← Вернуться в меню
           </button>
         </div>
@@ -577,6 +576,7 @@ const styles = {
     paddingTop: 80,
     textAlign: "center",
     padding: "80px 16px 0",
+    boxSizing: "border-box",
   },
   badge: {
     display: "inline-block",
@@ -623,6 +623,8 @@ const styles = {
     justifyContent: "center",
     margin: "0 auto",
     transition: "transform 0.1s",
+    width: "100%",
+    maxWidth: 300,
   },
   cards: {
     display: "flex",
@@ -642,6 +644,7 @@ const styles = {
     alignItems: "center",
     gap: 8,
     transition: "all 0.2s",
+    boxSizing: "border-box",
   },
   cardNum: {
     fontSize: 56,
@@ -663,12 +666,14 @@ const styles = {
     maxWidth: 680,
     width: "100%",
     padding: "40px 16px 60px",
+    boxSizing: "border-box",
   },
   lbWrap: {
     maxWidth: 600,
     width: "100%",
     padding: "40px 16px 60px",
     textAlign: "center",
+    boxSizing: "border-box",
   },
   lbList: {
     display: "flex",
@@ -696,11 +701,16 @@ const styles = {
     flex: 1,
     fontSize: 16,
     fontWeight: 500,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    marginRight: 10,
   },
   lbScore: {
     fontSize: 18,
     fontWeight: 700,
     color: "#c9a84c",
+    whiteSpace: "nowrap",
   },
   topBar: {
     display: "flex",
@@ -837,6 +847,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    boxSizing: "border-box",
   },
   scoreHeader: {
     fontSize: 14,
@@ -945,7 +956,32 @@ const styles = {
 };
 
 const css = `
+  .card-btn { transition: all 0.2s; }
   .card-btn:hover { border-color: #c9a84c !important; transform: translateY(-4px); }
   .option-btn:hover:not([disabled]) { border-color: #4b4737 !important; background: #1c1c23 !important; }
   button { font-family: 'Inter', sans-serif; }
+
+  @media (max-width: 600px) {
+    .app-title { font-size: 32px !important; margin-bottom: 12px !important; }
+    .app-sub { font-size: 14px !important; margin-bottom: 24px !important; }
+    .menu-wrap { padding-top: 40px !important; }
+    .cards-wrap { flex-direction: column !important; align-items: center !important; gap: 12px !important; }
+    .card-btn { width: 100% !important; max-width: 100% !important; padding: 24px 16px !important; }
+    .stats-wrap { flex-direction: column !important; gap: 12px !important; }
+    .stat-box { padding: 16px !important; flex-direction: row !important; justify-content: space-between !important; }
+    .stat-num { font-size: 32px !important; margin-bottom: 0 !important; }
+    .q-text { font-size: 18px !important; margin-bottom: 24px !important; }
+    .lb-item { padding: 12px 16px !important; }
+    .lb-rank { font-size: 16px !important; width: 24px !important; }
+    .lb-name { font-size: 14px !important; }
+    .lb-score { font-size: 14px !important; }
+    .nav-name { display: none !important; }
+    .option-btn { padding: 12px 16px !important; font-size: 14px !important; gap: 12px !important; }
+    .opt-label { width: 28px !important; height: 28px !important; font-size: 12px !important; }
+    .action-btn { width: 100% !important; padding: 16px !important; }
+    .actions-wrap { flex-direction: column !important; }
+    .score-msg { font-size: 16px !important; }
+    .review-card { padding: 16px !important; }
+    .auth-wrap { padding: 20px 16px !important; }
+  }
 `;
