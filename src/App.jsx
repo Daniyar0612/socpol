@@ -327,36 +327,40 @@ export default function App() {
     <div style={styles.root}>
       <style>{css}</style>
 
-      <div style={styles.header}>
-        {user ? (
-          <div style={styles.userInfo}>
-            <img src={user.photoURL} alt="avatar" style={styles.avatar} />
-            <span>{user.displayName}</span>
-            <button onClick={handleLogout} style={styles.authBtn}>Logout</button>
-          </div>
-        ) : (
-          <button onClick={handleLogin} style={styles.authBtnPrimary}>Login with Google</button>
-        )}
-      </div>
-
       {mode === "menu" && (
         <div style={styles.menu}>
           <div style={styles.badge}>SOCIOLOGY EXAM PREP</div>
           <h1 style={styles.title}>Exam Simulator</h1>
-          <p style={styles.sub}>Master your material! 40 randomized questions with shuffled answers.</p>
-          
-          <div style={styles.cards}>
-            <button style={{...styles.card, width: 220}} onClick={startQuiz} className="card-btn">
-              <span style={styles.cardNum}>40</span>
-              <span style={styles.cardLabel}>Start Quiz</span>
-              <span style={styles.cardDesc}>Randomized mode</span>
-            </button>
-            <button style={{...styles.card, width: 220, borderColor: "#22c55e"}} onClick={fetchLeaderboard} className="card-btn">
-              <span style={{...styles.cardNum, color: "#22c55e"}}>🏆</span>
-              <span style={styles.cardLabel}>Leaderboard</span>
-              <span style={styles.cardDesc}>See top scores</span>
-            </button>
-          </div>
+
+          {!user ? (
+            <div style={styles.authContainer}>
+              <p style={styles.sub}>Авторизуйся через Google, чтобы получить доступ к тестам и таблице лидеров.</p>
+              <button onClick={handleLogin} style={styles.bigLoginBtn}>
+                Войти через Google
+              </button>
+            </div>
+          ) : (
+            <>
+              <div style={styles.userProfile}>
+                <img src={user.photoURL} alt="avatar" style={styles.avatarBig} />
+                <div style={styles.userName}>{user.displayName}</div>
+                <button onClick={handleLogout} style={styles.logoutTextBtn}>Выйти из аккаунта</button>
+              </div>
+
+              <div style={styles.cards}>
+                <button style={{...styles.card, width: 220}} onClick={startQuiz} className="card-btn">
+                  <span style={styles.cardNum}>40</span>
+                  <span style={styles.cardLabel}>Начать тест</span>
+                  <span style={styles.cardDesc}>Случайный набор вопросов</span>
+                </button>
+                <button style={{...styles.card, width: 220, borderColor: "#22c55e"}} onClick={fetchLeaderboard} className="card-btn">
+                  <span style={{...styles.cardNum, color: "#22c55e"}}>🏆</span>
+                  <span style={styles.cardLabel}>Рейтинг</span>
+                  <span style={styles.cardDesc}>Топ результатов</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -374,11 +378,11 @@ export default function App() {
                   <div style={styles.lbScore}>{item.pct}% ({item.score}/{item.total})</div>
                 </div>
               ))}
-              {leaderboard.length === 0 && <p>No scores yet. Be the first!</p>}
+              {leaderboard.length === 0 && <p>Еще нет результатов. Будь первым!</p>}
             </div>
           )}
           <button onClick={() => setMode("menu")} style={{ ...styles.btn, ...styles.btnPrimary, marginTop: 40 }}>
-            ← Back to Main Menu
+            ← В главное меню
           </button>
         </div>
       )}
@@ -386,7 +390,7 @@ export default function App() {
       {mode === "quiz" && !showResult && q && (
         <div style={styles.quizWrap}>
           <div style={styles.topBar}>
-            <button onClick={() => setMode("menu")} style={styles.backBtn}>← Back to Menu</button>
+            <button onClick={() => setMode("menu")} style={styles.backBtn}>← В меню</button>
             <span style={styles.progress}>{current + 1} / {totalQ}</span>
           </div>
 
@@ -429,11 +433,11 @@ export default function App() {
                 disabled={selectedAns === null}
                 style={{ ...styles.btn, ...(selectedAns === null ? styles.btnDisabled : styles.btnPrimary) }}
               >
-                Confirm Answer
+                Подтвердить
               </button>
             ) : (
               <button onClick={handleNext} style={{ ...styles.btn, ...styles.btnPrimary }}>
-                {current + 1 >= totalQ ? "See Results →" : "Next Question →"}
+                {current + 1 >= totalQ ? "Результаты →" : "Следующий вопрос →"}
               </button>
             )}
           </div>
@@ -442,26 +446,25 @@ export default function App() {
 
       {mode === "quiz" && showResult && (
         <div style={styles.resultWrap}>
-          <div style={styles.scoreHeader}>PERFORMANCE STATISTICS</div>
+          <div style={styles.scoreHeader}>СТАТИСТИКА</div>
           
           <div style={styles.statsContainer}>
             <div style={styles.statBox}>
               <div style={{...styles.statNum, color: "#c9a84c"}}>{pct}%</div>
-              <div style={styles.statLabel}>Accuracy</div>
+              <div style={styles.statLabel}>Точность</div>
             </div>
             <div style={styles.statBox}>
               <div style={{...styles.statNum, color: "#22c55e"}}>{score}</div>
-              <div style={styles.statLabel}>Correct</div>
+              <div style={styles.statLabel}>Верно</div>
             </div>
             <div style={styles.statBox}>
               <div style={{...styles.statNum, color: "#ef4444"}}>{wrongScore}</div>
-              <div style={styles.statLabel}>Incorrect</div>
+              <div style={styles.statLabel}>Ошибки</div>
             </div>
           </div>
 
           <div style={styles.scoreMsg}>
-             {!user && "Sign in to save your score to the leaderboard! "}
-            {pct === 100 ? "🎉 Bravo! Perfect score!" : pct >= 80 ? "🔥 Great job! You're almost there." : pct >= 60 ? "👍 Good effort, keep practicing!" : "📚 Play again until you reach 100% mastery!"}
+            {pct === 100 ? "🎉 Идеально! Твой результат отправлен в базу." : pct >= 80 ? "🔥 Хорошая работа! Твой результат сохранен." : "📚 Результат сохранен, но есть куда расти!"}
           </div>
 
           <div style={styles.filterRow}>
@@ -471,7 +474,7 @@ export default function App() {
                 onClick={() => setFilter(f)}
                 style={{ ...styles.filterBtn, ...(filter === f ? styles.filterActive : {}) }}
               >
-                {f === "all" ? `All (${totalQ})` : f === "wrong" ? `Incorrect (${wrongScore})` : `Correct (${score})`}
+                {f === "all" ? `Все (${totalQ})` : f === "wrong" ? `Ошибки (${wrongScore})` : `Верные (${score})`}
               </button>
             ))}
           </div>
@@ -490,11 +493,11 @@ export default function App() {
                   </div>
                   {!isCorrect && userAnsStr && (
                     <div style={styles.reviewUserAns}>
-                      Your Answer: <span style={{ color: "#ef4444" }}>{LABELS[userIdx]}. {userAnsStr}</span>
+                      Твой ответ: <span style={{ color: "#ef4444" }}>{LABELS[userIdx]}. {userAnsStr}</span>
                     </div>
                   )}
                   <div style={styles.reviewCorrectAns}>
-                    Correct Answer: <span style={{ color: "#22c55e" }}>{LABELS[correctIdx]}. {rq.answer}</span>
+                    Правильный ответ: <span style={{ color: "#22c55e" }}>{LABELS[correctIdx]}. {rq.answer}</span>
                   </div>
                 </div>
               );
@@ -502,7 +505,7 @@ export default function App() {
           </div>
 
           <button onClick={() => setMode("menu")} style={{ ...styles.btn, ...styles.btnPrimary, marginTop: 40 }}>
-            ← Back to Main Menu
+            ← Вернуться в меню
           </button>
         </div>
       )}
@@ -521,48 +524,10 @@ const styles = {
     alignItems: "center",
     padding: "0 16px 60px",
   },
-  header: {
-    width: "100%",
-    maxWidth: 680,
-    display: "flex",
-    justifyContent: "flex-end",
-    paddingTop: 16,
-  },
-  userInfo: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    fontSize: 14,
-    fontWeight: 500,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: "50%",
-  },
-  authBtn: {
-    background: "transparent",
-    border: "1px solid #4b4737",
-    color: "#e8e3d9",
-    padding: "6px 12px",
-    borderRadius: 6,
-    cursor: "pointer",
-    fontSize: 13,
-  },
-  authBtnPrimary: {
-    background: "#c9a84c",
-    border: "none",
-    color: "#0f0f13",
-    padding: "8px 16px",
-    borderRadius: 6,
-    cursor: "pointer",
-    fontSize: 14,
-    fontWeight: 600,
-  },
   menu: {
     maxWidth: 600,
     width: "100%",
-    paddingTop: 60,
+    paddingTop: 100,
     textAlign: "center",
   },
   badge: {
@@ -587,7 +552,58 @@ const styles = {
   sub: {
     color: "#9ca3af",
     fontSize: 16,
-    marginBottom: 50,
+    marginBottom: 40,
+  },
+  authContainer: {
+    marginTop: 40,
+    padding: 30,
+    background: "#18181f",
+    borderRadius: 16,
+    border: "1px solid #2a2820",
+  },
+  bigLoginBtn: {
+    background: "#ffffff",
+    color: "#000000",
+    border: "none",
+    padding: "14px 32px",
+    borderRadius: 8,
+    fontSize: 16,
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "transform 0.1s",
+  },
+  userProfile: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    marginBottom: 40,
+    background: "#18181f",
+    padding: "24px",
+    borderRadius: 16,
+    border: "1px solid #2a2820",
+  },
+  avatarBig: {
+    width: 80,
+    height: 80,
+    borderRadius: "50%",
+    border: "3px solid #c9a84c",
+    marginBottom: 16,
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: 600,
+    color: "#f0ebe0",
+    marginBottom: 12,
+  },
+  logoutTextBtn: {
+    background: "transparent",
+    border: "1px solid #ef4444",
+    color: "#ef4444",
+    padding: "6px 16px",
+    borderRadius: 6,
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 500,
   },
   cards: {
     display: "flex",
@@ -691,7 +707,7 @@ const styles = {
     background: "#2a2820",
     borderRadius: 2,
     marginBottom: 40,
-    overflow: "hidden"
+    overflow: "hidden",
   },
   progressFill: {
     height: "100%",
