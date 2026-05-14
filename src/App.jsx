@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { signInWithPopup, signOut } from "firebase/auth";
+import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from "firebase/firestore";
+import { auth, provider, db } from "./firebase";
 
-// The answer is now the exact string, which allows us to shuffle the options array safely!
 const allQuestions = [
+  // --- ТВОИ ПРЕДЫДУЩИЕ ВОПРОСЫ (82 шт.) ---
   { id: 1, q: "The right for people to gather peacefully in public spaces to express their opinions or to protest is known as:", options: ["Freedom of speech", "Freedom of the press", "Freedom of association", "Freedom of assembly"], answer: "Freedom of assembly" },
   { id: 2, q: "Which of the following is NOT a characteristic of Max Weber's ideal-type bureaucracy?", options: ["Formal hierarchy", "Clearly-defined rules and procedures", "Promotion is on the basis of personal connections", "Clear distinction between public and private spheres"], answer: "Promotion is on the basis of personal connections" },
   { id: 3, q: "Which of the following is part of the horizontal dimension of power in a political regime?", options: ["Civil liberties", "Freedom of the press", "Freedom of assembly", "Separation of powers"], answer: "Separation of powers" },
@@ -84,6 +87,8 @@ const allQuestions = [
   { id: 80, q: "Which of the following is NOT important in the ethnic concept of the nation?", options: ["Citizenship", "Ethnicity", "Native language", "Culture"], answer: "Citizenship" },
   { id: 81, q: "Which of the following tactics is likely to be used by an insider pressure group?", options: ["Petitions and boycotts", "Grassroots campaigns", "Direct lobbying of policymakers", "Street protests"], answer: "Direct lobbying of policymakers" },
   { id: 82, q: "“X” is a social problem. Which of the following research questions is written from an objective perspective?", options: ["How did X come to be defined as a social problem?", "Who were the main actors pushing for X to be seen as a social problem?", "What policy responses could be introduced to reduce X?", "When did policymakers begin to pay increased attention to X?"], answer: "What policy responses could be introduced to reduce X?" },
+
+  // --- НОВЫЕ 100 ВОПРОСОВ ---
   { id: 83, q: "Albert Bandura developed which psychological theory related to observational learning?", options: ["Social identity theory", "Social learning theory", "Attachment theory", "Cognitive dissonance theory"], answer: "Social learning theory" },
   { id: 84, q: "According to Bandura's social learning theory, which of the following is NOT required for behaviour modelling?", options: ["Attention to the model", "Retention of observed behaviour", "Prior genetic predisposition to the behaviour", "Motivation to imitate"], answer: "Prior genetic predisposition to the behaviour" },
   { id: 85, q: "Which concept describes the process by which children internalize behaviours from their parents?", options: ["Classical conditioning", "Socialization", "Anomie", "Deviance amplification"], answer: "Socialization" },
@@ -193,17 +198,60 @@ function shuffle(arr) {
 }
 
 export default function App() {
+  const [user, setUser] = useState(null);
   const [mode, setMode] = useState("menu");
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
-  const [selectedAns, setSelectedAns] = useState(null); // Stores the string of the selected answer
-  const [answers, setAnswers] = useState({}); // Stores question ID -> selected string
+  const [selectedAns, setSelectedAns] = useState(null);
+  const [answers, setAnswers] = useState({});
   const [confirmed, setConfirmed] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [loadingLB, setLoadingLB] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setMode("menu");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    setLoadingLB(true);
+    setMode("leaderboard");
+    try {
+      const q = query(collection(db, "scores"), orderBy("pct", "desc"), orderBy("score", "desc"), limit(10));
+      const querySnapshot = await getDocs(q);
+      const data = [];
+      querySnapshot.forEach((doc) => {
+        data.push({ id: doc.id, ...doc.data() });
+      });
+      setLeaderboard(data);
+    } catch (error) {
+      console.error(error);
+    }
+    setLoadingLB(false);
+  };
 
   const startQuiz = () => {
-    // Select 40 random questions, and shuffle the options for EACH question
     const shuffled = shuffle(allQuestions).slice(0, 40).map(q => ({
       ...q,
       options: shuffle([...q.options])
@@ -223,6 +271,7 @@ export default function App() {
   const totalQ = quizQuestions.length;
   const score = quizQuestions.filter(q => answers[q.id] === q.answer).length;
   const wrongScore = totalQ - score;
+  const pct = totalQ > 0 ? Math.round((score / totalQ) * 100) : 0;
 
   const handleSelect = (optString) => {
     if (confirmed) return;
@@ -235,9 +284,23 @@ export default function App() {
     setAnswers(prev => ({ ...prev, [q.id]: selectedAns }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (current + 1 >= totalQ) {
       setShowResult(true);
+      if (user) {
+        try {
+          await addDoc(collection(db, "scores"), {
+            name: user.displayName,
+            email: user.email,
+            score: score,
+            total: totalQ,
+            pct: pct,
+            date: serverTimestamp()
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
     } else {
       setCurrent(c => c + 1);
       setSelectedAns(null);
@@ -260,24 +323,63 @@ export default function App() {
     return true;
   });
 
-  const pct = totalQ > 0 ? Math.round((score / totalQ) * 100) : 0;
-
   return (
     <div style={styles.root}>
       <style>{css}</style>
+
+      <div style={styles.header}>
+        {user ? (
+          <div style={styles.userInfo}>
+            <img src={user.photoURL} alt="avatar" style={styles.avatar} />
+            <span>{user.displayName}</span>
+            <button onClick={handleLogout} style={styles.authBtn}>Logout</button>
+          </div>
+        ) : (
+          <button onClick={handleLogin} style={styles.authBtnPrimary}>Login with Google</button>
+        )}
+      </div>
 
       {mode === "menu" && (
         <div style={styles.menu}>
           <div style={styles.badge}>SOCIOLOGY EXAM PREP</div>
           <h1 style={styles.title}>Exam Simulator</h1>
           <p style={styles.sub}>Master your material! 40 randomized questions with shuffled answers.</p>
+          
           <div style={styles.cards}>
-            <button style={{...styles.card, width: 240}} onClick={startQuiz} className="card-btn">
+            <button style={{...styles.card, width: 220}} onClick={startQuiz} className="card-btn">
               <span style={styles.cardNum}>40</span>
               <span style={styles.cardLabel}>Start Quiz</span>
               <span style={styles.cardDesc}>Randomized mode</span>
             </button>
+            <button style={{...styles.card, width: 220, borderColor: "#22c55e"}} onClick={fetchLeaderboard} className="card-btn">
+              <span style={{...styles.cardNum, color: "#22c55e"}}>🏆</span>
+              <span style={styles.cardLabel}>Leaderboard</span>
+              <span style={styles.cardDesc}>See top scores</span>
+            </button>
           </div>
+        </div>
+      )}
+
+      {mode === "leaderboard" && (
+        <div style={styles.lbWrap}>
+          <h2 style={styles.title}>Top Scores</h2>
+          {loadingLB ? (
+            <p>Loading...</p>
+          ) : (
+            <div style={styles.lbList}>
+              {leaderboard.map((item, i) => (
+                <div key={i} style={styles.lbItem}>
+                  <div style={styles.lbRank}>{i + 1}</div>
+                  <div style={styles.lbName}>{item.name}</div>
+                  <div style={styles.lbScore}>{item.pct}% ({item.score}/{item.total})</div>
+                </div>
+              ))}
+              {leaderboard.length === 0 && <p>No scores yet. Be the first!</p>}
+            </div>
+          )}
+          <button onClick={() => setMode("menu")} style={{ ...styles.btn, ...styles.btnPrimary, marginTop: 40 }}>
+            ← Back to Main Menu
+          </button>
         </div>
       )}
 
@@ -358,6 +460,7 @@ export default function App() {
           </div>
 
           <div style={styles.scoreMsg}>
+             {!user && "Sign in to save your score to the leaderboard! "}
             {pct === 100 ? "🎉 Bravo! Perfect score!" : pct >= 80 ? "🔥 Great job! You're almost there." : pct >= 60 ? "👍 Good effort, keep practicing!" : "📚 Play again until you reach 100% mastery!"}
           </div>
 
@@ -377,8 +480,6 @@ export default function App() {
             {reviewList.map((rq, index) => {
               const userAnsStr = answers[rq.id];
               const isCorrect = userAnsStr === rq.answer;
-              
-              // Find what label (A, B, C, D) the correct and user answers corresponded to during the quiz
               const correctIdx = rq.options.indexOf(rq.answer);
               const userIdx = rq.options.indexOf(userAnsStr);
 
@@ -420,10 +521,48 @@ const styles = {
     alignItems: "center",
     padding: "0 16px 60px",
   },
+  header: {
+    width: "100%",
+    maxWidth: 680,
+    display: "flex",
+    justifyContent: "flex-end",
+    paddingTop: 16,
+  },
+  userInfo: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    fontSize: 14,
+    fontWeight: 500,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: "50%",
+  },
+  authBtn: {
+    background: "transparent",
+    border: "1px solid #4b4737",
+    color: "#e8e3d9",
+    padding: "6px 12px",
+    borderRadius: 6,
+    cursor: "pointer",
+    fontSize: 13,
+  },
+  authBtnPrimary: {
+    background: "#c9a84c",
+    border: "none",
+    color: "#0f0f13",
+    padding: "8px 16px",
+    borderRadius: 6,
+    cursor: "pointer",
+    fontSize: 14,
+    fontWeight: 600,
+  },
   menu: {
     maxWidth: 600,
     width: "100%",
-    paddingTop: 80,
+    paddingTop: 60,
     textAlign: "center",
   },
   badge: {
@@ -454,6 +593,7 @@ const styles = {
     display: "flex",
     gap: 16,
     justifyContent: "center",
+    flexWrap: "wrap",
   },
   card: {
     background: "#18181f",
@@ -487,6 +627,44 @@ const styles = {
     maxWidth: 680,
     width: "100%",
     paddingTop: 40,
+  },
+  lbWrap: {
+    maxWidth: 600,
+    width: "100%",
+    paddingTop: 40,
+    textAlign: "center",
+  },
+  lbList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    marginTop: 32,
+    textAlign: "left",
+  },
+  lbItem: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    background: "#18181f",
+    border: "1px solid #2a2820",
+    padding: "16px 24px",
+    borderRadius: 12,
+  },
+  lbRank: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: "#6b7280",
+    width: 40,
+  },
+  lbName: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: 500,
+  },
+  lbScore: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: "#c9a84c",
   },
   topBar: {
     display: "flex",
