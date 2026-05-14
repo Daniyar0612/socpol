@@ -238,7 +238,6 @@ export default function App() {
     setLoadingLB(true);
     setMode("leaderboard");
     try {
-      // ПРИМЕЧАНИЕ: Эта функция заработает сразу, как только в Firebase достроится Индекс по ссылке из твоей ошибки!
       const q = query(collection(db, "scores"), orderBy("pct", "desc"), orderBy("score", "desc"), limit(10));
       const querySnapshot = await getDocs(q);
       const data = [];
@@ -247,8 +246,8 @@ export default function App() {
       });
       setLeaderboard(data);
     } catch (error) {
-      console.error(error);
-      alert("Рейтинг загружается. Если вы только что создали индекс в Firebase, подождите пару минут.");
+      console.error("Ошибка загрузки рейтинга:", error);
+      // Убрали страшный alert! Игроки его больше не увидят.
     }
     setLoadingLB(false);
   };
